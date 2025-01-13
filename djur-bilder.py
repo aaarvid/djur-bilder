@@ -24,11 +24,14 @@ def add_text_with_position_from_filename(image_path, output_path):
         print(f"Skipping file '{file_name}': Expected exactly two parts separated by '_'.")
         return
 
+    #extract position
     position = parts[-1].lower()
 
     # Extract the first file name part as text to render
-    #some fix for ÅÄÖ
     text_to_render = unicodedata.normalize('NFC', parts[0].replace("-", " ").upper())
+
+    #old
+    #text_to_render = parts[0].capitalize()
 
     # Create a Draw object
     draw = ImageDraw.Draw(image)
@@ -49,7 +52,7 @@ def add_text_with_position_from_filename(image_path, output_path):
     text_width = text_bbox[2] - text_bbox[0]
     text_height = text_bbox[3] - text_bbox[1]
 
-    # Define padding and rounded rectangle properties
+    # Define padding and rounded rectangle properties relative to font size
     padding = font_size // 2  # Padding around the text
     corner_radius = font_size // 8  # Radius for the rounded corners
 
@@ -81,14 +84,18 @@ def add_text_with_position_from_filename(image_path, output_path):
     )
   
     # Calculate text position (center the text within the box)
-    # text_x = box_x0 + (box_x1 - box_x0 - text_width) // 2
+
     text_x = box_x0 + ((box_x1 - box_x0)*0.5) - (text_width*0.5)
 
+    chars_to_check = {'å', 'ä', 'ö', 'Å', 'Ä', 'Ö'}
 
-    # text_y = box_y0 + (box_y1 - box_y0 - text_height) // 2 + (text_height // 8)
-    
-    text_y = box_y0 + ((box_y1 - box_y0)*0.5) - (text_height*0.5)
+    if any(char in text_to_render for char in chars_to_check):
+        #has åäö
+        text_y = box_y0 + ((box_y1 - box_y0)*0.5) - (text_height*0.5)
 
+    else:
+        #doesn't have åäö
+        text_y = box_y0 + ((box_y1 - box_y0)*0.5) - (text_height*0.9)
 
 
     # Draw the text
